@@ -5,6 +5,29 @@
 // function to parse data
 // part of this function is based on Assignment 1 createMovie function and main.c
 
+// create new dir
+void createNewDir(){
+	int n;
+	int status;
+	char dirName[50];
+	char nStr[10];
+
+	// format of the new dir
+	memset(dirName, '\0', sizeof(dirName));
+	strcpy(dirName,"leeya.movies.");
+	
+	// convert random number to string
+	n = rand()%100000;
+	sprintf(nStr, "%i", n);
+
+	// concatenate two strings
+	strcat(dirName, nStr);
+	printf("new dir name: %s\n", dirName);
+	 	
+	// create new dir
+	status = mkdir(dirName, 0750);
+}
+
 
 // find the largest or smallest file, this function is based on an example code of stat_example in exploration on Canvas
 void pickFile(int user){
@@ -52,8 +75,9 @@ void pickFile(int user){
 	// print final result
 	printf("Now processing the chosen file named: %s\n\n" ,entryName);
 	
-	// parse data
-
+	// create new dir
+	createNewDir();
+	
 	// close the dir	
 	closedir(currDir);	
 }
@@ -91,6 +115,7 @@ bool specFile(){
 		printf("The file %s was not found. Try again\n\n", fName);
 	}else{		
 		printf("Now processing the chosen file named: %s\n\n",entryName);
+		createNewDir();
 	}
 	return exist;
 }
@@ -124,7 +149,8 @@ void file_process(){
 }
 
 int main(){
-	
+	srand(time(NULL));	
+
 	int user = 0;
 
 	// loop until user quit the program

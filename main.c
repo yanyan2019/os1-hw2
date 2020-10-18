@@ -19,8 +19,29 @@
 // largest file, this function is based on an example code of stat_example on Canvas
 void largestFile(){
 	// open dir
+	DIR* 	currDir = opendir(".");
+	struct 	dirent *aDir;
+	struct 	stat dirStat;
+	off_t	fSize;
+	char 	entryName[256];
+	int 	i = 0;
 
-	// loop all files
+	// loop through all files
+	while((aDir = readdir(currDir)) != NULL){
+		
+		// find matching prefix
+		if(strncmp(aDir->d_name, PREFIX, strlen(PREFIX)) == 0){
+			printf("%s\n", aDir->d_name);				
+			// check for .csv files
+//			if(){		
+
+				// get meta-data of current file
+				stat(aDir->d_name, &dirStat);
+			
+				// check sizes for tied file name
+//			}
+		}
+	}
 	
 	// find the largest file
 	
@@ -29,6 +50,8 @@ void largestFile(){
 	// parse the data	
 
 	// close the dir	
+	closedir(currDir);
+	
 }
 
 // process user options

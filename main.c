@@ -3,7 +3,95 @@
 #include "movie.h" 
 
 // function to parse data
-// part of this function is based on Assignment 1 createMovie function and main.c
+// This function copy from Assignment 1 createMovie function in main.c
+struct movie *createMovie(char *currLine){
+	printf("createMovie function\n");
+		
+	struct movie *currMovie = malloc(sizeof(struct movie));
+
+	// pointer for using strtok_r
+	char *ptr;
+
+	// total number of languages
+	int langSize = 5;
+
+	// token for title
+	char *token = strtok_r(currLine, ",", &ptr);
+	currMovie->title = calloc(strlen(token)+1, sizeof(char));
+	strcpy(currMovie->title, token);
+
+	// token for year
+	token = strtok_r(NULL, ",", &ptr);
+	currMovie->year = atoi(token);
+
+	// token for languages
+	token = strtok_r(NULL, ",", &ptr);
+
+	// allocate dynamic array for languages 
+	currMovie->lang = (char**)calloc(langSize ,sizeof(char*));
+	
+	// dynamic array for languages
+	int i;
+	for(i = 0; i < langSize; i++){
+		currMovie->lang[i] = (char*)calloc(strlen(token)+1 ,sizeof(char));
+		char *token2 = strtok_r(NULL, "[,]", &token);
+	
+		// fill the empty language with string
+		if(token2 == NULL){
+			strcpy(currMovie->lang[i], "NULL");
+
+		}else{
+			strcpy(currMovie->lang[i], token2);
+		}
+		
+	}	
+
+	// token for rating
+	token = strtok_r(NULL, ",", &ptr);
+	currMovie->rating = strtod(token, NULL);
+
+	// set the next node to null
+	currMovie->next = NULL;
+	return currMovie;	
+}
+
+// read file
+// This function copy from assignment 1 file process fucntion in main.c
+struct movie* file_process(char fPath[]){
+
+	printf("file_process function:\n");
+	// read file
+	FILE *movieFile = fopen(fPath, "r");
+	char *currLine = NULL;
+	size_t len = 0;
+	size_t nread;
+	char *token;
+
+	// head and tail of the linked list
+	struct movie *head = NULL;
+	struct movie *tail = NULL;
+
+	// skip the first line of the csv file
+	getline(&currLine, &len, movieFile);
+		
+	// readfile line by line until the end of the file
+	while((nread = getline(&currLine ,&len, movieFile)) != -1){
+		
+		// call function to input data
+		struct movie *newNode = createMovie(currLine);
+		if(head == NULL){
+			head = newNode;
+			tail = newNode;
+		}else{
+			tail->next = newNode;
+			tail = newNode;
+		}
+
+	}
+	free(currLine);
+	fclose(movieFile);
+	return head;
+}
 
 // create new dir
 void createNewDir(){
@@ -77,6 +165,9 @@ void pickFile(int user){
 	
 	// create new dir
 	createNewDir();
+
+	//parse data
+	struct movie * list = file_process(entryName);
 	
 	// close the dir	
 	closedir(currDir);	
@@ -116,12 +207,13 @@ bool specFile(){
 	}else{		
 		printf("Now processing the chosen file named: %s\n\n",entryName);
 		createNewDir();
+		struct movie * list = file_process(entryName);
 	}
 	return exist;
 }
 
 // handling user options
-void file_process(){
+void user_options(){
 	int 	user = 0;
 	bool	exit = false;
 
@@ -150,7 +242,8 @@ void file_process(){
 
 int main(){
 	srand(time(NULL));	
-
+	
+	struct movie *list;
 	int user = 0;
 
 	// loop until user quit the program
@@ -162,7 +255,7 @@ int main(){
 		printf("\n");	
 		if(user == 1){
 			// call file process function
-			file_process();
+			user_options();
 		}else if(user != 2){
 			printf("Wrong input, please try again. \n\n");
 		}

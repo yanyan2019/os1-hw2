@@ -1,11 +1,10 @@
-// CS 344 PROGRAM 2
+// CS 34 PROGRAM 2
 
 #include "movie.h" 
 
 // function to parse data
-// This function copy from Assignment 1 createMovie function in main.c
+// This function copy from Assignment 1 createMovie function in main.c and sample code for assignment 1 on Canvas
 struct movie *createMovie(char *currLine){
-	printf("createMovie function\n");
 		
 	struct movie *currMovie = malloc(sizeof(struct movie));
 
@@ -55,11 +54,9 @@ struct movie *createMovie(char *currLine){
 	return currMovie;	
 }
 
-// read file
-// This function copy from assignment 1 file process fucntion in main.c
+// reads file and splits data per line
+// This function copy from assignment 1 file process fucntion in main.c and sample code for assignment 1 on Canvas
 struct movie* file_process(char fPath[]){
-
-	printf("file_process function:\n");
 	// read file
 	FILE *movieFile = fopen(fPath, "r");
 	char *currLine = NULL;
@@ -93,8 +90,8 @@ struct movie* file_process(char fPath[]){
 	return head;
 }
 
-// create new dir
-void createNewDir(){
+// create new dir and return the dir name
+char* createNewDir(){
 	int n;
 	int status;
 	char dirName[50];
@@ -110,10 +107,65 @@ void createNewDir(){
 
 	// concatenate two strings
 	strcat(dirName, nStr);
-	printf("new dir name: %s\n", dirName);
 	 	
 	// create new dir
 	status = mkdir(dirName, 0750);
+
+	// return dir name	
+	char * name = calloc(strlen(dirName)+1,sizeof(char));
+	name = dirName;
+	printf("Created directory with the name: %s\n", name);
+	return name;
+}
+
+// create new movie file, part of this function use the sample code from week 3 file on Canvas
+void newFile(struct movie *list, char newDir[]){
+	// create sub-directory path
+	char dir[50] = "./";
+	strcat(dir,newDir);
+	strcat(dir, "/");
+
+	// open sub-directory
+	DIR*	currDir = opendir("dir");
+
+	// open new file
+	int file_descriptor;
+	char fName[50];
+	struct movie *m = list;
+	
+	// loop through the movie linked list
+	while(m != NULL){ 
+
+		// create file path
+		memset(fName, '\0', sizeof(fName));
+
+		// convert year into file string name
+		sprintf(fName, "%i", m->year);
+		strcat(fName, ".txt");
+
+		strcat(dir, fName);
+		
+		// open file
+		file_descriptor = open(dir, O_RDWR | O_CREAT | O_APPEND, 0640);
+		if(file_descriptor == -1){
+			printf("Unable to open %s\n", dir);
+			exit(1);
+		}
+
+		// write title to the file
+		write(file_descriptor, m->title, strlen(m->title));
+		write(file_descriptor, "\n", sizeof(char));
+		close(file_descriptor);
+		
+		// clean up the file path
+		memset(dir, '\0', sizeof(dir));
+		strcat(dir,"./");
+		strcat(dir,newDir);
+		strcat(dir, "/");
+
+		m = m->next;
+	}
+	closedir(currDir);
 }
 
 
@@ -133,17 +185,13 @@ void pickFile(int user){
 		
 		// find matching prefix
 		if(strncmp(aDir->d_name, PREFIX, strlen(PREFIX)) == 0){
-//			printf("%s %i %c\n", aDir->d_name, strlen(aDir->d_name), aDir->d_name[18]);				
+				
 			// check for .csv extensions	
 			if(strncmp(&aDir->d_name[strlen(aDir->d_name)-4], EXT, strlen(EXT)) == 0){						
-				//printf("files that matches prefix and ext: ");
-				//printf("%s \n", aDir->d_name);
 
 				// get meta-data of current file
 				stat(aDir->d_name, &dirStat);
 
-//				printf("size: %i\n",dirStat.st_size);
-				
 				// deside if do option 1 or option 2 comparison
 				if(user == 1){
 					sizeCmp = dirStat.st_size > fSize;
@@ -163,18 +211,26 @@ void pickFile(int user){
 	// print final result
 	printf("Now processing the chosen file named: %s\n\n" ,entryName);
 	
-	// create new dir
-	createNewDir();
+	//call create new dir function
+	char *	newDir = createNewDir();
+	char dir[50];
+	memset(dir, '\0',sizeof(dir));
+	strcpy(dir, newDir);
 
-	//parse data
+	//call parse data function
 	struct movie * list = file_process(entryName);
-	
+
+	// generate file
+	newFile(list, dir);
+
 	// close the dir	
 	closedir(currDir);	
 }
 
 // find the specific file
 bool specFile(){
+	
+	// open current directory
 	DIR* currDir = opendir(".");
 	struct dirent *aDir;
 	char entryName[256]; 
@@ -186,9 +242,8 @@ bool specFile(){
 
 	//loop through dir
 	while((aDir = readdir(currDir)) !=NULL){	
-		//printf("input: %s, file in dir: %s\n", fName, aDir->d_name);	
-		//printf("length result: %i\n", strcmp(fName, aDir->d_name));	
-		// file validation
+
+		// if file name is valid, use bool value to either print error messages or continue to process the file
 		if(strncmp(fName, aDir->d_name, strlen(aDir->d_name)) == 0){	
 			exist = true;
 			memset(entryName, '\0', sizeof(entryName));
@@ -202,12 +257,25 @@ bool specFile(){
 
 	// close dir
 	closedir(currDir);
+
+	// error message, file not found
 	if(exist == false){
 		printf("The file %s was not found. Try again\n\n", fName);
 	}else{		
+		// continue the file processing
 		printf("Now processing the chosen file named: %s\n\n",entryName);
-		createNewDir();
+
+		// create new directory function
+		char *newDir = createNewDir();
+		char dir[50];
+		memset(dir, '\0', sizeof(dir));
+		strcpy(dir, newDir);
+
+		// call file process function
 		struct movie * list = file_process(entryName);
+		
+		// generate files
+		newFile(list, dir);
 	}
 	return exist;
 }

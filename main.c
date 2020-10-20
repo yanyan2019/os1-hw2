@@ -1,4 +1,4 @@
-// CS 34 PROGRAM 2
+// CS 344 PROGRAM 2
 
 #include "movie.h" 
 
